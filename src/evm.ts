@@ -10,15 +10,16 @@ export type EVMConfig = {
   name: string;
 };
 
-const ETH_PRIVATE_KEY =
-  "";
+const ETH_PRIVATE_KEY = process.env.ETH_PRIVATE_KEY || "";
 const ETH_TO_ADDRESS = "0x7ba36126910c75b27363ecaa2a57033686c087fb";
 const ETH_AMOUNT = "0.0001";
+const ETH_FINALITY_MODE: "optimistic" | "finalized" = "optimistic";
 
 const numTxs = 30;
 const delayMs = 1000;
 
 async function sendTransaction(
+  provider: JsonRpcProvider,
   wallet: Wallet,
   confirmation: number
 ): Promise<TransactionResult> {
@@ -28,7 +29,22 @@ async function sendTransaction(
     value: ethers.parseEther(ETH_AMOUNT),
   });
 
-  await tx.wait(confirmation);
+  if (ETH_FINALITY_MODE === "optimistic") {
+    await tx.wait(confirmation);
+  } else {
+    const receipt = await tx.wait(1); 
+    const txBlockNumber = receipt!.blockNumber;
+    console.log(`Transaction included in block number: ${txBlockNumber}`);
+    
+    while (true) {
+      const finalizedBlock = await provider.getBlock("finalized");
+      if (finalizedBlock && finalizedBlock.number >= txBlockNumber) {
+        break;
+      }
+      console.log(`Current finalized block: ${finalizedBlock?.number}, waiting for block number: ${txBlockNumber} ,${Date.now() - sendTime}ms elapsed`);
+      await sleep(12000);
+    }
+  }
 
   const finalTime = Date.now();
 
@@ -62,7 +78,7 @@ export async function runBenchmark({
   for (let i = 0; i < numTxs; i++) {
     console.log(`Sending transaction ${i + 1}/${numTxs}...`);
     try {
-      const result = await sendTransaction(wallet, confirmation);
+      const result = await sendTransaction(provider, wallet, confirmation);
       console.log(
         `Transaction ${i + 1}/${numTxs} - TxId: ${result.txId}, Latency: ${
           result.latency
@@ -77,5 +93,8 @@ export async function runBenchmark({
   }
   console.log(`\n✓ ${name} benchmark completed\n`);
   console.log(`Errors: ${errors} out of ${numTxs} transactions\n`);
-  exportToCSV(results, name);
+  const fileName = `${name}${
+    ETH_FINALITY_MODE === "finalized" ?  "final" : "optimistic"
+  }`;
+  exportToCSV(results, fileName);
 }

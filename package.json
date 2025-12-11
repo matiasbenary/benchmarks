@@ -6,12 +6,12 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "near": "tsx src/near.ts",
-    "sui": "tsx src/sui.ts",
-    "solana": "tsx src/solana.ts",
-    "aptos": "tsx src/aptos.ts",
-    "sepolia": "tsx src/sepolia.ts",
-    "arbitrum": "tsx src/arbitrum.ts"
+    "near": "tsx --env-file=.env src/near.ts",
+    "sui": "tsx --env-file=.env src/sui.ts",
+    "solana": "tsx --env-file=.env src/solana.ts",
+    "aptos": "tsx --env-file=.env src/aptos.ts",
+    "sepolia": "tsx --env-file=.env src/sepolia.ts",
+    "arbitrum": "tsx --env-file=.env src/arbitrum.ts"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

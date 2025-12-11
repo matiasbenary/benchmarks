@@ -1,4 +1,4 @@
-import { Account, JsonRpcProvider, actionCreators } from 'near-api-js';
+import { Account, JsonRpcProvider, actionCreators, type KeyPairString } from 'near-api-js';
 import { NEAR } from 'near-api-js/tokens';
 
 import { exportToCSV, TransactionResult } from './utils/output.js';
@@ -6,10 +6,11 @@ import { sleep } from './utils/common.js';
 
 // Configuration
 const NEAR_NETWORK_ID = "testnet"
-const NEAR_ACCOUNT_ID = 'maguila.testnet'
-const NEAR_PRIVATE_KEY = ''
+const NEAR_ACCOUNT_ID = process.env.NEAR_ACCOUNT_ID || ''
+const NEAR_PRIVATE_KEY = process.env.NEAR_PRIVATE_KEY as KeyPairString | undefined
 const NEAR_RECEIVER_ID = 'alakazam.testnet'
 const NEAR_AMOUNT = '0.01'
+const NEAR_FINALITY_MODE: 'EXECUTED_OPTIMISTIC' | 'FINAL' = 'EXECUTED_OPTIMISTIC'
 
 
 const nodeUrl = `https://rpc.${NEAR_NETWORK_ID}.fastnear.com`;
@@ -35,7 +36,7 @@ async function sendTransaction(
 
     const result = await provider.sendTransactionUntil(
         signedTx,
-        'FINAL'
+        NEAR_FINALITY_MODE
     );
 
     const finalTime = Date.now();
@@ -101,7 +102,7 @@ export async function runBenchmark(): Promise<void> {
 
     console.log(`\n✓ NEAR benchmark completed\n`);
     console.log(`Errors: ${errors} out of ${numTxs} transactions\n`);
-    exportToCSV(results, "near");
+    exportToCSV(results, `near-${NEAR_FINALITY_MODE === "FINAL" ? "final" : "optimistic"}`);
 }
 
 runBenchmark();

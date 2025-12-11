@@ -10,11 +10,11 @@ import {
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const APTOS_NETWORK = NetworkToNetworkName["testnet"];
-const APTOS_PRIVATE_KEY =
-  "";
+const APTOS_PRIVATE_KEY = process.env.APTOS_PRIVATE_KEY || "";
 const APTOS_TO_ADDRESS =
   "0x62616de9bc3c7726eb7e0341bb31118d34ad124c2d31daefb242d6e0c10592ef";
 const APTOS_AMOUNT = "0.01";
+const APTOS_IS_FINALITY_MODE: boolean = false;
 
 const numTxs = 30;
 const delayMs = 1000;
@@ -32,7 +32,12 @@ async function sendTransaction(aptos: Aptos, account: Ed25519Account ): Promise<
   const sendTime = Date.now();
   const committedTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
 
-  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+  await aptos.waitForTransaction({ 
+    transactionHash: committedTxn.hash,
+    options:{
+      checkSuccess: APTOS_IS_FINALITY_MODE,
+    }
+  });
 
   const finalTime = Date.now();
   const latency = finalTime - sendTime;
@@ -87,7 +92,7 @@ export async function runBenchmark(): Promise<void> {
 
     console.log(`\n✓ APTOS benchmark completed\n`);
     console.log(`Errors: ${errors} out of ${numTxs} transactions\n`);
-    exportToCSV(results, "aptos");
+    exportToCSV(results, `aptos-${APTOS_IS_FINALITY_MODE ? "final" : "optimistic"}`);
 }
 
 runBenchmark();

@@ -6,12 +6,12 @@ import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { MIST_PER_SUI } from "@mysten/sui/utils";
 import { Transaction } from "@mysten/sui/transactions";
 
-const SUI_NETWORK = "devnet";
-const SUI_PRIVATE_KEY =
-  "";
+const SUI_NETWORK = "testnet";
+const SUI_PRIVATE_KEY = process.env.SUI_PRIVATE_KEY || "";
 const SUI_TO_ADDRESS =
   "0x3b5bcd532e83a91eeca8fa22cfdbfac5dfe1a07a575e4d9d5e2e3e6dc71dd47c";
 const SUI_AMOUNT = "0.01";
+const SUI_FINALITY_MODE: "WaitForLocalExecution" | "WaitForEffectsCert" = "WaitForLocalExecution";
 
 const numTxs = 30;
 const delayMs = 1000;
@@ -26,12 +26,23 @@ async function sendTransaction(
   const [coin] = tx.splitCoins(tx.gas, [amountInMist]);
   tx.transferObjects([coin], SUI_TO_ADDRESS);
   const sendTime = Date.now();
+
   const result = await client.signAndExecuteTransaction({
     signer: keypair,
     transaction: tx,
   });
-  //   https://sdk.mystenlabs.com/typescript/transaction-building/basics#observing-the-results-of-a-transaction
-  await client.waitForTransaction({ digest: result.digest });
+
+ //https://sdk.mystenlabs.com/typescript/transaction-building/basics#observing-the-results-of-a-transaction
+  tx.setSenderIfNotSet(keypair.toSuiAddress());
+  const transactionBytes = await tx.build({ client });
+
+  const { signature, bytes } = await keypair.signTransaction(transactionBytes);
+  await client.executeTransactionBlock({
+    transactionBlock: bytes,
+    signature,
+    requestType: SUI_FINALITY_MODE,
+  });
+
   const finalTime = Date.now();
   const latency = finalTime - sendTime;
   return {
@@ -79,6 +90,8 @@ export async function runBenchmark(): Promise<void> {
       results.push(result);
       console.log(`  ✓ Finalized in ${result.latency}ms (tx: ${result.txId})`);
     } catch (error) {
+      console.log(error);
+      
       errors++;
     }
 

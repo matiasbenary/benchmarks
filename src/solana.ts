@@ -23,11 +23,12 @@ import { getTransferSolInstruction } from "@solana-program/system";
 
 // https://api.mainnet-beta.solana.com
 const SOL_RPC_URL = "https://api.devnet.solana.com";
-const SOL_PRIVATE_KEY =
-  "";
+const SOL_PRIVATE_KEY = process.env.SOL_PRIVATE_KEY || "";
 const SOL_TO_ADDRESS = "CosSyFF2mqvCZZDNsXr19yQ8PHj8eVJ2qtMtauaFM7gA";
 const SOL_AMOUNT = "0.001";
-
+// https://solana.com/docs/rpc#configuring-state-commitment
+const SOL_FINALITY_MODE: "confirmed" | "finalized" = "confirmed";
+ 
 const numTxs = 30;
 const delayMs = 1000;
 
@@ -62,7 +63,7 @@ async function sendTransaction(
 
   await sendAndConfirmTransactionFactory({ rpc, rpcSubscriptions } as any)(
     signedTransaction as any,
-    { commitment: "finalized" }
+    { commitment: SOL_FINALITY_MODE }
   );
 
   const transactionSignature = getSignatureFromTransaction(signedTransaction);
@@ -121,7 +122,7 @@ export async function runBenchmark(): Promise<void> {
   }
   console.log(`\n✓ SOLANA benchmark completed\n`);
   console.log(`Errors: ${errors} out of ${numTxs} transactions\n`);
-  exportToCSV(results, "solana");
+  exportToCSV(results, `solana-${SOL_FINALITY_MODE === "finalized" ? "final" : "optimistic"}`);
 }
 
 runBenchmark();
