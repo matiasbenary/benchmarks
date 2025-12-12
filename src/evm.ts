@@ -13,7 +13,7 @@ export type EVMConfig = {
 const ETH_PRIVATE_KEY = process.env.ETH_PRIVATE_KEY || "";
 const ETH_TO_ADDRESS = "0x7ba36126910c75b27363ecaa2a57033686c087fb";
 const ETH_AMOUNT = "0.0001";
-const ETH_FINALITY_MODE: "optimistic" | "finalized" = "optimistic";
+const ETH_FINALITY_MODE: "optimistic" | "finalized" = "finalized";
 
 const numTxs = 30;
 const delayMs = 1000;

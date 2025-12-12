@@ -100,7 +100,7 @@ export async function runBenchmark(): Promise<void> {
 
   console.log(`\n✓ SUI benchmark completed\n`);
   console.log(`Errors: ${errors} out of ${numTxs} transactions\n`);
-  exportToCSV(results, "sui");
+  exportToCSV(results, `sui-${SUI_FINALITY_MODE === "WaitForEffectsCert" ? "final" : "optimistic"}`);
 }
 
 runBenchmark();

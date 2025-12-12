@@ -32,12 +32,14 @@ async function sendTransaction(aptos: Aptos, account: Ed25519Account ): Promise<
   const sendTime = Date.now();
   const committedTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction: txn });
 
-  await aptos.waitForTransaction({ 
-    transactionHash: committedTxn.hash,
-    options:{
-      checkSuccess: APTOS_IS_FINALITY_MODE,
-    }
-  });
+  if (APTOS_IS_FINALITY_MODE) {
+    await aptos.waitForTransaction({ 
+      transactionHash: committedTxn.hash,
+      options:{
+        checkSuccess: true,
+      }
+    });
+  }
 
   const finalTime = Date.now();
   const latency = finalTime - sendTime;
