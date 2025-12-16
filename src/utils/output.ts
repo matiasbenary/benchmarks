@@ -4,6 +4,7 @@ import * as path from 'path';
 export interface TransactionResult {
     txId?: string;
     latency?: number;
+    fee?: number;
 }
 
 export async function exportToCSV(results: TransactionResult[], network: string): Promise<void> {
@@ -16,8 +17,8 @@ export async function exportToCSV(results: TransactionResult[], network: string)
 
 export function resultsToCSV(results: TransactionResult[]): string {
   return [
-  'tx_id,latency_ms',
-  ...results.map(r => `${r.txId},${r.latency}`)
+  'tx_id,latency_ms,fee',
+  ...results.map(r => `${r.txId},${r.latency},${r.fee}`)
 ].join('\n');
 }
 

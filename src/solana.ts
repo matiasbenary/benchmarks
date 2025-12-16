@@ -29,7 +29,7 @@ const SOL_AMOUNT = "0.001";
 // https://solana.com/docs/rpc#configuring-state-commitment
 const SOL_FINALITY_MODE: "confirmed" | "finalized" = "confirmed";
  
-const numTxs = 30;
+const numTxs = 5;
 const delayMs = 1000;
 
 // https://solana.com/es/developers/cookbook/transactions/send-sol
@@ -38,6 +38,9 @@ async function sendTransaction(
   rpc: ReturnType<typeof createSolanaRpc>,
   rpcSubscriptions: ReturnType<typeof createSolanaRpcSubscriptions>
 ): Promise<TransactionResult> {
+  const { value: balanceBeforeLamports } = await rpc.getBalance(sender.address).send();
+  const balanceBefore = Number(balanceBeforeLamports) / 1_000_000_000;
+
   const transferAmount = lamports(
     BigInt(parseFloat(SOL_AMOUNT) * 1_000_000_000)
   );
@@ -69,9 +72,15 @@ async function sendTransaction(
   const transactionSignature = getSignatureFromTransaction(signedTransaction);
   const finalTime = Date.now();
   const latency = finalTime - sendTime;
+
+  const { value: balanceAfterLamports } = await rpc.getBalance(sender.address).send();
+  const balanceAfter = Number(balanceAfterLamports) / 1_000_000_000;
+  const transactionFee = balanceBefore - balanceAfter - parseFloat(SOL_AMOUNT);
+
   return {
     txId: transactionSignature,
     latency,
+    fee: transactionFee,
   };
 }
 

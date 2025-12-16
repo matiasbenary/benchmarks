@@ -16,10 +16,20 @@ const APTOS_TO_ADDRESS =
 const APTOS_AMOUNT = "0.01";
 const APTOS_IS_FINALITY_MODE: boolean = false;
 
-const numTxs = 30;
+const numTxs = 5;
 const delayMs = 1000;
 
+async function getBalance(aptos: Aptos, accountAddress: string): Promise<number> {
+  const accountCoins = await aptos.getAccountCoinsData({ accountAddress });
+  const aptCoin = accountCoins.find(
+    (coin) => coin.asset_type === "0x1::aptos_coin::AptosCoin"
+  );
+  return Number(aptCoin?.amount) / 100_000_000;
+}
+
 async function sendTransaction(aptos: Aptos, account: Ed25519Account ): Promise<TransactionResult> {
+    const balanceBefore = await getBalance(aptos, account.accountAddress.toString());
+
     const amount = Math.floor(parseFloat(APTOS_AMOUNT) * 100_000_000);
     const txn = await aptos.transaction.build.simple({
     sender: account.accountAddress,
@@ -44,9 +54,15 @@ async function sendTransaction(aptos: Aptos, account: Ed25519Account ): Promise<
   const finalTime = Date.now();
   const latency = finalTime - sendTime;
 
+  // Adding a small delay to ensure balance is updated
+  await sleep(1250); 
+  const balanceAfter = await getBalance(aptos, account.accountAddress.toString());
+  const transactionFee = balanceBefore - balanceAfter - parseFloat(APTOS_AMOUNT);
+
   return {
     txId: committedTxn.hash,
     latency,
+    fee: transactionFee,
   };
 }
 
@@ -69,13 +85,8 @@ export async function runBenchmark(): Promise<void> {
   const account = new Ed25519Account({ privateKey });
   console.log(`Account address: ${account.accountAddress}`);
 
-  const accountCoins = await aptos.getAccountCoinsData({
-    accountAddress: account.accountAddress,
-  });
-  const aptCoin = accountCoins.find(
-    (coin) => coin.asset_type === "0x1::aptos_coin::AptosCoin"
-  );
-  console.log(`Balance: ${Number(aptCoin?.amount) / 100_000_000} APT\n`);
+  const balance = await getBalance(aptos, account.accountAddress.toString());
+  console.log(`Balance: ${balance} APT\n`);
 
     for (let i = 0; i < numTxs; i++) {
       try {

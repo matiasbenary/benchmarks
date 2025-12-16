@@ -13,13 +13,17 @@ const SUI_TO_ADDRESS =
 const SUI_AMOUNT = "0.01";
 const SUI_FINALITY_MODE: "WaitForLocalExecution" | "WaitForEffectsCert" = "WaitForLocalExecution";
 
-const numTxs = 30;
+const numTxs = 5;
 const delayMs = 1000;
 
 async function sendTransaction(
   client: SuiClient,
-  keypair: Ed25519Keypair
+  keypair: Ed25519Keypair,
+  address: string
 ): Promise<TransactionResult> {
+  const balanceBefore = await client.getBalance({ owner: address });
+  const balanceBeforeSUI = Number.parseInt(balanceBefore.totalBalance) / Number(MIST_PER_SUI);
+
   const amountInMist = Math.floor(parseFloat(SUI_AMOUNT) * 1_000_000_000);
 
   const tx = new Transaction();
@@ -45,9 +49,15 @@ async function sendTransaction(
 
   const finalTime = Date.now();
   const latency = finalTime - sendTime;
+
+  const balanceAfter = await client.getBalance({ owner: address });
+  const balanceAfterSUI = Number.parseInt(balanceAfter.totalBalance) / Number(MIST_PER_SUI);
+  const transactionFee = balanceBeforeSUI - balanceAfterSUI - parseFloat(SUI_AMOUNT);
+
   return {
     txId: result.digest,
     latency,
+    fee: transactionFee,
   };
 }
 
@@ -81,7 +91,7 @@ export async function runBenchmark(): Promise<void> {
     console.log(`Sending transaction ${i + 1}/${numTxs}...`);
 
     try {
-      const result = await sendTransaction(suiClient, keypair);
+      const result = await sendTransaction(suiClient, keypair, address);
       console.log(
         `Transaction ${i + 1}/${numTxs} - TxId: ${result.txId}, Latency: ${
           result.latency
