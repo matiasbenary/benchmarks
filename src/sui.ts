@@ -13,7 +13,7 @@ const SUI_TO_ADDRESS =
 const SUI_AMOUNT = "0.01";
 const SUI_FINALITY_MODE: "WaitForLocalExecution" | "WaitForEffectsCert" = "WaitForLocalExecution";
 
-const numTxs = 5;
+const numTxs = 30;
 const delayMs = 1000;
 
 async function sendTransaction(

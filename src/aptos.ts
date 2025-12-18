@@ -16,7 +16,7 @@ const APTOS_TO_ADDRESS =
 const APTOS_AMOUNT = "0.01";
 const APTOS_IS_FINALITY_MODE: boolean = false;
 
-const numTxs = 5;
+const numTxs = 30;
 const delayMs = 1000;
 
 async function getBalance(aptos: Aptos, accountAddress: string): Promise<number> {
@@ -55,7 +55,7 @@ async function sendTransaction(aptos: Aptos, account: Ed25519Account ): Promise<
   const latency = finalTime - sendTime;
 
   // Adding a small delay to ensure balance is updated
-  await sleep(1250); 
+  await sleep(1500); 
   const balanceAfter = await getBalance(aptos, account.accountAddress.toString());
   const transactionFee = balanceBefore - balanceAfter - parseFloat(APTOS_AMOUNT);
 

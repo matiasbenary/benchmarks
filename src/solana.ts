@@ -29,7 +29,7 @@ const SOL_AMOUNT = "0.001";
 // https://solana.com/docs/rpc#configuring-state-commitment
 const SOL_FINALITY_MODE: "confirmed" | "finalized" = "confirmed";
  
-const numTxs = 5;
+const numTxs = 30;
 const delayMs = 1000;
 
 // https://solana.com/es/developers/cookbook/transactions/send-sol

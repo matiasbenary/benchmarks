@@ -21,7 +21,7 @@ const NEAR_FINALITY_MODE: "EXECUTED_OPTIMISTIC" | "FINAL" =
   "EXECUTED_OPTIMISTIC";
 
 const nodeUrl = `https://rpc.${NEAR_NETWORK_ID}.fastnear.com`;
-const numTxs = 5;
+const numTxs = 30;
 const delayMs = 1000;
 
 async function sendTransaction(
@@ -104,7 +104,7 @@ export async function runBenchmark(): Promise<void> {
         NEAR_AMOUNT
       );
       results.push(result);
-      console.log(`  ✓ Finalized in ${result.latency}ms (tx: ${result.txId})`);
+      console.log(`  ✓ Finalized in ${result.latency}ms (tx: ${result.txId}), fee: ${result.fee.toFixed(6)} NEAR`);
     } catch (error) {
       console.error(
         `  ✗ Error sending transaction: ${(error as Error).message}`
